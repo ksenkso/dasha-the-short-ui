@@ -1,21 +1,95 @@
 <template>
-  <MessageForm />
+  <div class="client">
+    <div class="dialogs">
+      <button
+        v-for="dialog in dialogs"
+        :key="dialog.alias"
+        class="dialog"
+        :class="{ active: currentDialog === dialog.alias }"
+        @click="currentDialog = dialog.alias"
+      >
+        {{ dialog.title }}
+      </button>
+    </div>
+    <div class="messages">
+      <div class="messages-list">
+        <div
+          v-for="message in messages"
+          :key="message.id"
+          class="message"
+        >
+
+        </div>
+      </div>
+      <MessageForm
+        :disabled="isLoading"
+        @send="send"
+      />
+    </div>
+  </div>
 </template>
 
 <style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+.client {
+  display: flex;
+  border-radius: 3px;
+  background-color: var(--color-bg);
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+
+.dialogs {
+  display: flex;
+  flex-direction: column;
 }
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+
+.dialog {
+  padding: 12px 8px;
+  cursor: pointer;
+  border: none;
+  background-color: var(--color-tint);
+  color: white;
+  text-align: left;
+}
+
+.dialog.active {
+  background-color: var(--color-active);
+}
+
+.messages {
+  width: 100%;
 }
 </style>
 <script setup lang="ts">
 import MessageForm from "./components/MessageForm.vue";
+import { ref } from "vue";
+
+const dialogs = [
+  {
+    title: 'Тестовая группа',
+    alias: 'test',
+  },
+  {
+    title: 'Конференц-зал геншин импакта',
+    alias: 'genshin_conference',
+  },
+];
+const currentDialog = ref('test');
+const isLoading = ref(false);
+const messages = ref([]);
+const send = (text: string) => {
+  isLoading.value = true;
+  fetch(import.meta.env.VITE_APP_API_URL + '/sendMessage', {
+    method: 'POST',
+    body: JSON.stringify({ text, chatAlias: currentDialog.value }),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+    .catch((err) => {
+      alert('Ошибка: ' + err.message);
+      console.error(err);
+    })
+    .finally(() => {
+      isLoading.value = false;
+    });
+}
 </script>
